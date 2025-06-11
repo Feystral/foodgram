@@ -102,8 +102,7 @@ jobs:
           context: ./nginx/
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_gateway:latest
-
-J, [11.06.2025 16:41]
+          
 deploy:
     runs-on: ubuntu-latest
     needs:
