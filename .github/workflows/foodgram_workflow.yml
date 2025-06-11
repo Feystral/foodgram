@@ -6,44 +6,8 @@ on:
       - main
 
 jobs:
-  db_setup_and_prepare:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:13.10
-        env:
-          POSTGRES_USER: django_user
-          POSTGRES_PASSWORD: django_password
-          POSTGRES_DB: django_db
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip 
-          pip install -r ./backend/requirements.txt
-      - name: Run migrations and load data
-        env:
-          POSTGRES_USER: django_user
-          POSTGRES_PASSWORD: django_password
-          POSTGRES_DB: django_db
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-        run: |
-          cd backend/
-          python manage.py migrate
-          python manage.py load_tags
-          python manage.py load_ingrs
-
   tests:
     runs-on: ubuntu-latest
-    needs: db_setup_and_prepare
     services:
       postgres:
         image: postgres:13.10
@@ -55,30 +19,33 @@ jobs:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-      - name: Install lint tools
-        run: |
-          python -m pip install --upgrade pip 
-          pip install flake8==6.0.0 flake8-isort==6.0.0
-      - name: Run linters and tests
-        env:
-          POSTGRES_USER: django_user
-          POSTGRES_PASSWORD: django_password
-          POSTGRES_DB: django_db
-          DB_PORT: 5432
-        run: |
-          python -m flake8 backend/
-          cd backend/
-          python manage.py test
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip 
+        pip install flake8==6.0.0 flake8-isort==6.0.0
+        pip install -r ./backend/requirements.txt
+    - name: Test with flake8 and django tests
+      env:
+        POSTGRES_USER: django_user
+        POSTGRES_PASSWORD: django_password
+        POSTGRES_DB: django_db
+        DB_PORT: 5432
+        DB_HOST: 127.0.0.1
+      run: |
+        python -m flake8 backend/
+        cd backend/
+        python manage.py test
 
   build_and_push_to_docker_hub:
     name: Push Docker image to DockerHub
     runs-on: ubuntu-latest
-    needs: db_setup_and_prepare
+    needs: tests  # Добавлено: ждет выполнения tests
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -99,7 +66,7 @@ jobs:
   build_frontend_and_push_to_docker_hub:
     name: Push frontend Docker image to DockerHub
     runs-on: ubuntu-latest
-    needs: db_setup_and_prepare
+    needs: tests  # Добавлено: ждет выполнения tests
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -120,7 +87,6 @@ jobs:
   build_gateway_and_push_to_docker_hub:
     name: Push gateway Docker image to DockerHub
     runs-on: ubuntu-latest
-    needs: db_setup_and_prepare
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -145,44 +111,33 @@ jobs:
       - build_frontend_and_push_to_docker_hub
       - build_gateway_and_push_to_docker_hub
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-      - name: Copy docker-compose.yml via ssh
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          source: "docker-compose.yml"
-          target: "foodgram"
-      - name: Executing remote ssh commands to deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          script: |
-            cd foodgram
-            sudo docker compose stop
-            sudo docker compose rm backend
-            sudo docker compose -f docker-compose.yml pull
-            sudo docker compose -f docker-compose.yml down
-            sudo docker compose -f docker-compose.yml up -d
-            sudo docker compose -f docker-compose.yml exec backend python manage.py migrate
-            sudo docker compose -f docker-compose.yml exec backend python manage.py load_ingrs
-            sudo docker compose -f docker-compose.yml exec backend python manage.py load_tags
-            sudo docker compose -f docker-compose.yml exec backend python manage.py collectstatic
-            sudo docker compose -f docker-compose.yml exec backend cp -r /app/collected_static/. /backend_static/static/
-
-  send_message:
-    runs-on: ubuntu-latest
-    needs: deploy
-    steps:
-      - name: Send message
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: Деплой успешно выполнен, УРРААААА!!
+    - name: Checkout repo
+      uses: actions/checkout@v3
+    - name: Copy docker-compose.yml via ssh
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USER }}
+        key: ${{ secrets.SSH_KEY }}
+        passphrase: ${{ secrets.SSH_PASSPHRASE }}
+        source: "docker-compose.yml"
+        target: "foodgram"
+    - name: Executing remote ssh commands to deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USER }}
+        key: ${{ secrets.SSH_KEY }}
+        passphrase: ${{ secrets.SSH_PASSPHRASE }}
+        script: |
+          cd foodgram
+          sudo docker compose stop
+          sudo docker compose rm backend
+          sudo docker compose -f docker-compose.yml pull
+          sudo docker compose -f docker-compose.yml down
+          sudo docker compose -f docker-compose.yml up -d
+          sudo docker compose -f docker-compose.yml exec backend python manage.py migrate
+          sudo docker compose -f docker-compose.yml exec backend python manage.py load_ingrs
+          sudo docker compose -f docker-compose.yml exec backend python manage.py load_tags
+          sudo docker compose -f docker-compose.yml exec backend python manage.py collectstatic
+          sudo docker compose -f docker-compose.yml exec backend cp -r /app/collected_static/. /_
