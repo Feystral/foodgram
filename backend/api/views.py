@@ -290,6 +290,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         buffer.seek(0)
         return FileResponse(buffer, as_attachment=True, filename=FILENAME)
 
+    @action(detail=True, methods=['get'], url_path='get-link')
+    def get_link(self, request, pk=None):
+        """Отдать прямую ссылку на рецепт."""
+        url = request.build_absolute_uri(f'/recipes/{pk}/')
+        return Response({'link': url})
+
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Список ингредиентов."""
