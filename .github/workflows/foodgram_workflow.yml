@@ -157,4 +157,4 @@ jobs:
             Пользователь: ${{ github.actor }}
             Коммит: ${{ github.sha }}
             Сообщение: ${{ github.event.head_commit.message }}
-            https://github.com/${{ github.repository }}/commit/${{ github.sha }}!!!
+            https://github.com/${{ github.repository }}/commit/${{ github.sha }}!!
