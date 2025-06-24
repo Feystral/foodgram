@@ -20,6 +20,7 @@ services:
   frontend:
     image: feystral/foodgram_frontend:latest
     env_file: .env
+    command: cp -r /app/build/. /static/
     volumes:
       - static:/static
     depends_on:
