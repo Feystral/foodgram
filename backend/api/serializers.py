@@ -202,22 +202,32 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     tags = TagSerializer(
         many=True,
-        read_only=True)
+        read_only=True
+    )
     author = RecipeUserSerializer(
         read_only=True,
-        default=serializers.CurrentUserDefault())
+        default=serializers.CurrentUserDefault()
+    )
     ingredients = IngredientRecipeSerializer(
         many=True,
         required=True,
-        source='recipe')
+        source='recipe'
+    )
     is_favorited = serializers.BooleanField(
-        read_only=True)
+        read_only=True
+    )
     is_in_shopping_cart = serializers.BooleanField(
-        read_only=True)
+        read_only=True
+    )
+    link = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
-        fields = '__all__'
+        fields = '__all__'  # можно оставить, если все поля нужны
+
+    def get_link(self, obj):
+        request = self.context.get('request')
+        return request.build_absolute_uri(f'/recipes/{obj.id}/')
 
 
 class SubscribeRecipeSerializer(serializers.ModelSerializer):
