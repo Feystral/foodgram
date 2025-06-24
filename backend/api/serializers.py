@@ -232,6 +232,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             reverse('recipe-detail', args=[obj.id])
         )
 
+
 class SubscribeRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
