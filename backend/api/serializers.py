@@ -3,6 +3,7 @@ from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from drf_base64.fields import Base64ImageField
+from rest_framework.reverse import reverse
 
 from recipes.models import Ingredient, IngredientRecipe, Recipe, Subscribe, Tag
 from rest_framework import serializers
@@ -227,8 +228,9 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_link(self, obj):
         request = self.context.get('request')
-        return request.build_absolute_uri(f'/recipes/{obj.id}/')
-
+        return request.build_absolute_uri(
+            reverse('recipe-detail', args=[obj.id])
+        )
 
 class SubscribeRecipeSerializer(serializers.ModelSerializer):
 
