@@ -129,23 +129,14 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         read_only_fields = ('author',)
 
     def validate(self, data):
-        ingredients = data['ingredients']
-        ingredient_list = []
-        for items in ingredients:
-            ingredient = get_object_or_404(
-                Ingredient, id=items['id'])
-            if ingredient in ingredient_list:
-                raise serializers.ValidationError(
-                    'Ингредиент должен быть уникальным!')
-            ingredient_list.append(ingredient)
-        tags = data['tags']
+        tags = data.get('tags')
         if not tags:
             raise serializers.ValidationError(
-                'Нужен хотя бы один тэг для рецепта!')
-        for tag_name in tags:
-            if not Tag.objects.filter(name=tag_name).exists():
+                {'tags': 'Нужен хотя бы один тэг для рецепта!'})
+        for tag in tags:
+            if not Tag.objects.filter(id=tag.id).exists():
                 raise serializers.ValidationError(
-                    f'Тэга {tag_name} не существует!')
+                    {'tags': f'Тэг с id={tag.id} не существует!'})
         return data
 
     def validate_cooking_time(self, cooking_time):
@@ -154,15 +145,22 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                 'Время приготовления >= 1!')
         return cooking_time
 
-    def validate_ingredients(self, data):
-        ingredients = data['ingredients']
+    def validate_ingredients(self, ingredients):
         if not ingredients:
             raise serializers.ValidationError(
-                'Мин. 1 ингредиент в рецепте!')
-        for ingredient in ingredients:
-            if int(ingredient.get('amount')) < 1:
+                {'ingredients': 'Мин. 1 ингредиент в рецепте!'})
+        seen_ids = set()
+        for item in ingredients:
+            ing_id = item.get('id')
+            amount = item.get('amount')
+            if ing_id in seen_ids:
                 raise serializers.ValidationError(
-                    'Количество ингредиента >= 1!')
+                    {'ingredients': 'Ингредиенты не должны повторяться!'})
+            seen_ids.add(ing_id)
+            if not isinstance(amount, int) or amount < 1:
+                raise serializers.ValidationError(
+                    {'ingredients': 'Количество ингредиента должно быть ≥ 1!'})
+
         return ingredients
 
     def create_ingredients(self, ingredients, recipe):
