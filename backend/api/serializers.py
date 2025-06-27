@@ -147,18 +147,18 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def validate_ingredients(self, ingredients):
         if not ingredients:
             raise serializers.ValidationError(
-                {'ingredients': 'Мин. 1 ингредиент в рецепте!'})
+                'Мин. 1 ингредиент в рецепте!')
         seen_ids = set()
         for item in ingredients:
             ing_id = item.get('id')
             amount = item.get('amount')
             if ing_id in seen_ids:
                 raise serializers.ValidationError(
-                    {'ingredients': 'Ингредиенты не должны повторяться!'})
+                    'Ингредиенты не должны повторяться!')
             seen_ids.add(ing_id)
             if not isinstance(amount, int) or amount < 1:
                 raise serializers.ValidationError(
-                    {'ingredients': 'Количество ингредиента должно быть ≥ 1!'})
+                    'Количество ингредиента должно быть ≥ 1!')
 
         return ingredients
 
