@@ -135,32 +135,44 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         tags = data.get('tags', [])
 
         if not ingredients:
-            raise serializers.ValidationError({'ingredients': 'Мин. 1 ингредиент в рецепте!'})
+            raise serializers.ValidationError(
+                {'ingredients': 'Мин. 1 ингредиент в рецепте!'}
+            )
 
         seen = set()
         for item in ingredients:
             ingredient_id = item.get('id')
             if ingredient_id in seen:
-                raise serializers.ValidationError({'ingredients': 'Ингредиенты не должны повторяться!'})
+                raise serializers.ValidationError(
+                    {'ingredients': 'Ингредиенты не должны повторяться!'}
+                )
             seen.add(ingredient_id)
 
             amount = item.get('amount')
             try:
                 amount = int(amount)
             except (TypeError, ValueError):
-                raise serializers.ValidationError({'ingredients': 'Количество должно быть числом!'})
+                raise serializers.ValidationError(
+                    {'ingredients': 'Количество должно быть числом!'}
+                )
 
             if amount < 1:
-                raise serializers.ValidationError({'ingredients': 'Количество ингредиента должно быть ≥ 1!'})
+                raise serializers.ValidationError(
+                    {'ingredients': 'Количество ингредиента должно быть ≥ 1!'}
+                )
 
         if not tags:
-            raise serializers.ValidationError({'tags': 'Нужен хотя бы один тэг для рецепта!'})
+            raise serializers.ValidationError(
+                {'tags': 'Нужен хотя бы один тэг для рецепта!'}
+            )
 
         return data
 
     def validate_cooking_time(self, cooking_time):
         if int(cooking_time) < 1:
-            raise serializers.ValidationError('Время приготовления должно быть ≥ 1!')
+            raise serializers.ValidationError(
+                'Время приготовления должно быть ≥ 1!'
+            )
         return cooking_time
 
     def create_ingredients(self, ingredients, recipe):
@@ -194,7 +206,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             instance,
             context={'request': self.context.get('request')}
         ).data
-
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
