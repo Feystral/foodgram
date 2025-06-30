@@ -8,7 +8,7 @@ from .views import (
     TagViewSet,
     IngredientViewSet,
     RecipeViewSet,
-    AuthToken,
+    # AuthToken,
     set_password,
     AddAndDeleteSubscribe,
     AddDeleteFavoriteRecipe,
