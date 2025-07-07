@@ -227,7 +227,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     def get_link(self, obj):
         request = self.context.get('request')
         return request.build_absolute_uri(
-            reverse('recipe-detail', args=[obj.id])
+            reverse('recipe-detail', args=[obj.id], request=request)
         )
 
 

@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.text import slugify
 
 User = get_user_model()
 
@@ -59,9 +60,24 @@ class Recipe(models.Model):
         Tag,
         verbose_name='Тэги',
         related_name='recipes')
+    slug = models.SlugField(
+        unique=True,
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name='Короткая ссылка'
+    )
 
     class Meta:
         ordering = ('-id',)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def get_short_url(self):
+        return request.build_absolute_uri(f'/recipes/{self.slug}/')
 
     def __str__(self):
         return f'{self.author.email}, {self.name}'
