@@ -77,7 +77,7 @@ class Recipe(models.Model):
         super().save(*args, **kwargs)
 
     def get_short_url(self):
-        return request.build_absolute_uri(f'/recipes/{self.slug}/')
+        return f'/recipes/{self.slug}/'
 
     def __str__(self):
         return f'{self.author.email}, {self.name}'

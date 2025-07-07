@@ -300,7 +300,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def short(self, request, pk=None):
         recipe = self.get_object()
         return Response({
-            'short_url': recipe.get_short_url(request)
+            'short_url': request.build_absolute_uri(recipe.get_short_url())
         })
 
 
