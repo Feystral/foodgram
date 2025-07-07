@@ -106,7 +106,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 class IngredientsEditSerializer(serializers.ModelSerializer):
 
     id = serializers.IntegerField()
-    amount = serializers.IntegerField()
+    amount = amount = serializers.IntegerField(min_value=1)
 
     class Meta:
         model = Ingredient

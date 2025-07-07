@@ -128,9 +128,19 @@ const RecipeCreate = ({ onEdit }) => {
           className={styles.form}
           onSubmit={(e) => {
             e.preventDefault();
-            if (checkIfDisabled()) {
+            
+if (checkIfDisabled()) {
               return;
             }
+
+    const hasInvalidIngredient = recipeIngredients.some(
+      (item) => parseInt(item.amount, 10) <= 0
+    );
+    if (hasInvalidIngredient) {
+      setSubmitError({ submitError: "Убедитесь, что у всех ингредиентов количество больше 0" });
+      return;
+    }
+
             const data = {
               text: recipeText,
               name: recipeName,
