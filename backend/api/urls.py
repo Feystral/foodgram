@@ -20,7 +20,7 @@ router = DefaultRouter()
 router.register('users', UsersViewSet)
 router.register('tags', TagViewSet)
 router.register('ingredients', IngredientViewSet)
-router.register('recipes', RecipeViewSet, basename='recipes')
+router.register('recipes', RecipeViewSet)
 
 urlpatterns = [
     # path('auth/token/login', AuthToken.as_view(), name='login'),
