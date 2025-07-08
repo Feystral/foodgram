@@ -60,13 +60,6 @@ class Recipe(models.Model):
         Tag,
         verbose_name='Тэги',
         related_name='recipes')
-    slug = models.SlugField(
-        unique=True,
-        max_length=100,
-        blank=True,
-        null=True,
-        verbose_name='Короткая ссылка'
-    )
 
     class Meta:
         ordering = ('-id',)
@@ -75,9 +68,6 @@ class Recipe(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
-
-    def get_short_url(self):
-        return f'/recipes/{self.slug}/'
 
     def __str__(self):
         return f'{self.author.email}, {self.name}'

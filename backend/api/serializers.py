@@ -224,12 +224,6 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = '__all__'  # можно оставить, если все поля нужны
 
-    def get_link(self, obj):
-        request = self.context.get('request')
-        return request.build_absolute_uri(
-            reverse('recipe-detail', args=[obj.id], request=request)
-        )
-
 
 class SubscribeRecipeSerializer(serializers.ModelSerializer):
 

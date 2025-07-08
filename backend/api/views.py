@@ -296,14 +296,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url = request.build_absolute_uri(f'/recipes/{pk}/')
         return Response({'link': url})
 
-    @action(detail=True, methods=['get'])
-    def short(self, request, pk=None):
-        recipe = self.get_object()
-        return Response({
-            'short_url': request.build_absolute_uri(recipe.get_short_url())
-        })
-
-
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Список ингредиентов."""
 
